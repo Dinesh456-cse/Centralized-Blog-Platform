@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}My Dashboard{% endblock %}
+
+{% block content %}
+<section class="page">
+    <div class="page-header">
+        <div>
+            <h1>My Dashboard</h1>
+            <p class="muted">Track and manage your blogs.</p>
+        </div>
+        <div>
+            <a href="{% url 'blogs:blog_create' %}" class="btn btn-primary btn-sm">
+                + New Blog
+            </a>
+        </div>
+    </div>
+
+    <div class="card card-stat">
+        <div class="card-body">
+            <p class="stat-label">Total Blogs Created</p>
+            <p class="stat-value">{{ user_blogs|length }}</p>
+        </div>
+    </div>
+
+    <section class="section">
+        <div class="section-header">
+            <h2>My Blogs</h2>
+        </div>
+        <div class="card-grid">
+            {% for blog in user_blogs %}
+                <article class="card card-blog">
+                    <div class="card-body">
+                        <h3 class="card-title">
+                            <a href="{% url 'blogs:blog_detail' blog.pk %}">{{ blog.title }}</a>
+                        </h3>
+                        <p class="card-meta">
+                            {{ blog.created_at|date:"M d, Y" }} ·
+                            <span class="badge badge-pill">{{ blog.status|title }}</span>
+                        </p>
+                        <p class="card-text">
+                            {{ blog.content|truncatechars:160 }}
+                        </p>
+                        <div class="card-actions">
+                            <a href="{% url 'blogs:blog_update' blog.pk %}" class="btn btn-outline btn-sm">
+                                Edit
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            {% empty %}
+                <p class="muted">You have not created any blogs yet.</p>
+            {% endfor %}
+        </div>
+    </section>
+</section>
+{% endblock %}

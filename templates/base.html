@@ -1,0 +1,132 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Central Platform{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Main stylesheet -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <!-- Favicon (optional: use same logo or a smaller version) -->
+    <link rel="icon" href="{% static 'images/logo.png' %}" type="image/png">
+</head>
+<body>
+<header>
+    <nav class="navbar">
+        <div class="nav-inner">
+            <div class="nav-left">
+                <a href="{% url 'home' %}" class="brand">
+                    <!-- Logo image -->
+                    <img src="{% static 'images/logo.png' %}" alt="Central Platform Logo" class="brand-logo">
+                    Central<span>Platform</span>
+                </a>
+            </div>
+
+            <div class="nav-center">
+                <a href="{% url 'home' %}">Home</a>
+                <a href="{% url 'blogs:blog_list' %}">Blogs</a>
+
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard:dashboard' %}">Dashboard</a>
+                    {% if user.role == 'admin' or user.is_staff %}
+                        <a href="{% url 'adminpanel:user_list' %}">Admin Panel</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            <div class="nav-right">
+                {% if user.is_authenticated %}
+                    
+                    <!-- 🔔 Notification Bell -->
+                    <a href="{% url 'blogs:notifications' %}" class="notification-bell" title="Notifications">
+                        🔔
+                        <span class="notification-badge" id="notification-badge"></span>
+                    </a>
+                    
+                    <!-- 👨‍💼 Admin Review Link (Staff/Admin Only) -->
+                    {% if user.is_staff or user.role == 'admin' %}
+                    <a href="{% url 'blogs:admin_review' %}" class="admin-review-link" title="Review Pending Blogs">
+                        📋 Review
+                        <span class="pending-badge" id="pending-badge"></span>
+                    </a>
+                    {% endif %}
+                    
+                    <span class="nav-user">
+                        {{ user.username }}{% if user.role == 'admin' or user.is_staff %} · Admin{% endif %}
+                    </span>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-ghost btn-sm">Profile</a>
+                    <a href="{% url 'accounts:logout' %}" class="btn btn-outline btn-sm">Logout</a>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="btn btn-ghost btn-sm">Login</a>
+                    <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-sm">Sign up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main class="main">
+    <div class="container">
+        {% if messages %}
+            <div class="messages-wrapper">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+<footer class="site-footer">
+    <div class="container footer-inner">
+        <span>© {% now "Y" %} Central Platform</span>
+        <span class="footer-meta">Built with Django</span>
+    </div>
+</footer>
+
+<!-- 🔔 Notification Check Script -->
+{% if user.is_authenticated %}
+<script>
+function checkNotifications() {
+    fetch('{% url "blogs:notification_count" %}')
+        .then(r => r.json())
+        .then(data => {
+            const badge = document.getElementById('notification-badge');
+            if (badge) {
+                if (data.count > 0) {
+                    badge.textContent = data.count > 99 ? '99+' : data.count;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+            
+            // Update pending badge for admins
+            const pendingBadge = document.getElementById('pending-badge');
+            if (pendingBadge && data.pending_count !== undefined) {
+                if (data.pending_count > 0) {
+                    pendingBadge.textContent = data.pending_count;
+                    pendingBadge.style.display = 'inline-block';
+                } else {
+                    pendingBadge.style.display = 'none';
+                }
+            }
+        })
+        .catch(err => console.log('Notification check failed'));
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    checkNotifications();
+    setInterval(checkNotifications, 30000);
+});
+</script>
+{% endif %}
+
+</body>
+</html>

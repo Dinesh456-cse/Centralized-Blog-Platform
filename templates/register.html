@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Sign up · Central Platform{% endblock %}
+
+{% block content %}
+<section class="page page-narrow">
+    <div class="card card-form">
+        <div class="card-body">
+            <h1 class="card-title">Create your account</h1>
+            <p class="muted">Join the platform and start writing or managing blogs.</p>
+
+            <form method="post" class="form-styled">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Sign up</button>
+                </div>
+            </form>
+
+            <p class="muted small">
+                Already have an account?
+                <a href="{% url 'accounts:login' %}">Login here</a>.
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}

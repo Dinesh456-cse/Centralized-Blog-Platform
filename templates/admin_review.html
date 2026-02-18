@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Review Panel{% endblock %}
+
+{% block content %}
+<section class="page">
+    <div class="card">
+        <div class="card-body">
+            <h1 class="card-title">👨‍💼 Admin Review Panel</h1>
+            
+            <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+                <div style="padding: 15px; background: #fef3c7; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2rem; font-weight: bold; color: #d97706;">{{ stats.pending }}</div>
+                    <div>Pending</div>
+                </div>
+                <div style="padding: 15px; background: #d1fae5; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2rem; font-weight: bold; color: #059669;">{{ stats.published }}</div>
+                    <div>Published</div>
+                </div>
+                <div style="padding: 15px; background: #fee2e2; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2rem; font-weight: bold; color: #dc2626;">{{ stats.rejected }}</div>
+                    <div>Rejected</div>
+                </div>
+            </div>
+            
+            <h2>⏳ Pending Reviews</h2>
+            
+            {% for blog in pending_blogs %}
+            <div style="padding: 20px; margin: 15px 0; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                <h3 style="margin: 0 0 10px 0;">
+                    <a href="{% url 'blogs:blog_detail' blog.pk %}">{{ blog.title }}</a>
+                </h3>
+                <p style="color: #666; margin: 0 0 10px 0;">By {{ blog.author.username }} · {{ blog.created_at|date:"M d, Y H:i" }}</p>
+                <p style="color: #444;">{{ blog.content|truncatewords:30 }}</p>
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                    <a href="{% url 'blogs:blog_update' blog.pk %}" class="btn btn-primary btn-sm">Edit & Review</a>
+                    <button onclick="quickApprove({{ blog.pk }})" class="btn btn-success btn-sm">✅ Approve</button>
+                    <button onclick="quickReject({{ blog.pk }})" class="btn btn-danger btn-sm">❌ Reject</button>
+                </div>
+            </div>
+            {% empty %}
+            <p style="text-align: center; color: #666; padding: 40px;">No pending blogs! 🎉</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<script>
+function quickApprove(blogId) {
+    if (!confirm('Approve this blog?')) return;
+    
+    fetch(`/blogs/admin/quick-approve/${blogId}/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        }
+    });
+}
+
+function quickReject(blogId) {
+    const reason = prompt('Rejection reason (optional):');
+    if (reason === null) return;
+    
+    const formData = new FormData();
+    formData.append('reason', reason);
+    
+    fetch(`/blogs/admin/quick-reject/${blogId}/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}

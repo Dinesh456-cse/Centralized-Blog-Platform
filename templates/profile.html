@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<section class="page page-narrow">
+    <div class="card card-form">
+        <div class="card-body">
+            <h1 class="card-title">My Profile</h1>
+            <p class="muted">Update your account information and profile image.</p>
+
+            <div class="profile-header">
+                {% if user.profile_image %}
+                    <img src="{{ user.profile_image.url }}" alt="{{ user.username }}" class="avatar-lg">
+                {% else %}
+                    <div class="avatar-lg avatar-placeholder">
+                        {{ user.username|first|upper }}
+                    </div>
+                {% endif %}
+                <div>
+                    <p class="profile-name">{{ user.username }}</p>
+                    <p class="profile-meta">{{ user.email }}</p>
+                    <p class="profile-meta">Role: {{ user.role|title }}</p>
+                </div>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" class="form-styled">
+                {% csrf_token %}
+
+                <fieldset>
+                    <legend>Account Info</legend>
+                    {{ user_form.as_p }}
+                </fieldset>
+
+                <fieldset>
+                    <legend>Profile Image</legend>
+                    {{ profile_form.as_p }}
+                </fieldset>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

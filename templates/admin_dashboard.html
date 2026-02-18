@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<section class="page">
+    <div class="page-header">
+        <div>
+            <h1>Admin Overview</h1>
+            <p class="muted">Monitor platform activity and manage users.</p>
+        </div>
+        <div>
+            <a href="{% url 'adminpanel:user_list' %}" class="btn btn-primary btn-sm">
+                Manage Users
+            </a>
+        </div>
+    </div>
+
+    <div class="card-grid card-grid-3">
+        <div class="card card-stat">
+            <div class="card-body">
+                <p class="stat-label">Total Users</p>
+                <p class="stat-value">{{ total_users }}</p>
+            </div>
+        </div>
+        <div class="card card-stat">
+            <div class="card-body">
+                <p class="stat-label">Total Blogs</p>
+                <p class="stat-value">{{ total_blogs }}</p>
+            </div>
+        </div>
+        <div class="card card-stat">
+            <div class="card-body">
+                <p class="stat-label">Role</p>
+                <p class="stat-value">Admin</p>
+            </div>
+        </div>
+    </div>
+
+    <section class="section">
+        <div class="section-header">
+            <h2>Recent Blogs</h2>
+        </div>
+        <div class="card-grid">
+            {% for blog in recent_blogs %}
+                <article class="card card-blog">
+                    <div class="card-body">
+                        <h3 class="card-title">
+                            <a href="{% url 'blogs:blog_detail' blog.pk %}">
+                                {{ blog.title }}
+                            </a>
+                        </h3>
+                        <p class="card-meta">
+                            {{ blog.author.username }} · {{ blog.created_at|date:"M d, Y" }}
+                            · <span class="badge badge-pill">{{ blog.status|title }}</span>
+                        </p>
+                    </div>
+                </article>
+            {% empty %}
+                <p class="muted">No recent blogs.</p>
+            {% endfor %}
+        </div>
+    </section>
+    <section class="section">
+    <div class="section-header">
+        <h2>Pending Blog Approvals</h2>
+    </div>
+
+    <div class="card-grid">
+
+        {% for blog in pending_blogs %}
+        <article class="card card-blog">
+            <div class="card-body">
+
+                <h3 class="card-title">
+                    <a href="{% url 'blogs:blog_detail' blog.pk %}">
+                        {{ blog.title }}
+                    </a>
+                </h3>
+
+                <p class="card-meta">
+                    {{ blog.author.username }} · 
+                    {{ blog.created_at|date:"M d, Y" }}
+                </p>
+
+                <div style="margin-top:10px; display:flex; gap:8px;">
+
+                    <a href="{% url 'adminpanel:approve_blog' blog.id %}"
+                       class="btn btn-success btn-sm">
+                        Approve
+                    </a>
+
+                    <a href="{% url 'adminpanel:reject_blog' blog.id %}"
+                       class="btn btn-danger btn-sm">
+                        Reject
+                    </a>
+
+                </div>
+
+            </div>
+        </article>
+        {% empty %}
+        <p class="muted">No blogs waiting for approval.</p>
+        {% endfor %}
+
+    </div>
+</section>
+
+</section>
+{% endblock %}

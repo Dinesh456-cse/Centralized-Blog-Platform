@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+<section class="page">
+    <div class="page-header">
+        <div>
+            <h1>User Management</h1>
+            <p class="muted">View all users, activate/deactivate accounts, and update roles.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Active</th>
+                            <th>Joined</th>
+                            <th style="width:220px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                            <tr>
+                                <td>{{ u.username }}</td>
+                                <td>{{ u.email }}</td>
+                                <td>{{ u.role }}</td>
+                                <td>
+                                    {% if u.is_active %}
+                                        <span class="badge badge-success">Active</span>
+                                    {% else %}
+                                        <span class="badge badge-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ u.date_joined|date:"M d, Y" }}</td>
+                                <td>
+                                    <div class="table-actions">
+                                        <!-- Activate / Deactivate -->
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="user_id" value="{{ u.id }}">
+                                            <input type="hidden" name="action" value="toggle_active">
+                                            <button type="submit" class="btn btn-outline btn-xs">
+                                                {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
+                                            </button>
+                                        </form>
+
+                                        <!-- Change Role -->
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="user_id" value="{{ u.id }}">
+                                            <input type="hidden" name="action" value="change_role">
+                                            <select name="role" class="select-sm">
+                                                {% for value, label in role_choices %}
+                                                    <option value="{{ value }}"{% if u.role == value %} selected{% endif %}>
+                                                        {{ label }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                            <button type="submit" class="btn btn-primary btn-xs">
+                                                Update
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="muted">No users found.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

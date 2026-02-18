@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Blogs · Central Platform{% endblock %}
+
+{% block content %}
+<section class="page">
+    <div class="page-header">
+        <div>
+            <h1>Blogs</h1>
+            <p class="muted">Browse all published posts, search by title, or create your own.</p>
+        </div>
+        {% if user.is_authenticated %}
+        <div>
+            <a href="{% url 'blogs:blog_create' %}" class="btn btn-primary">
+                + New Blog
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <form method="get" class="card search-card">
+        <div class="search-row">
+            <input type="text" name="q" placeholder="Search blogs by title..." value="{{ query }}">
+            <button type="submit" class="btn btn-outline btn-sm">Search</button>
+        </div>
+    </form>
+
+    <div class="card-grid">
+        {% for blog in blogs %}
+            <article class="card card-blog">
+                {% if blog.image %}
+                    <div class="card-image">
+                        <img src="{{ blog.image.url }}" alt="{{ blog.title }}">
+                    </div>
+                {% endif %}
+                <div class="card-body">
+                    <h2 class="card-title">
+                        <a href="{% url 'blogs:blog_detail' blog.pk %}">{{ blog.title }}</a>
+                    </h2>
+                    <p class="card-meta">
+    {{ blog.author.username }} · {{ blog.created_at|date:"M d, Y" }}
+
+    {% if blog.category %}
+        · <span class="badge badge-category">{{ blog.category }}</span>
+    {% endif %}
+
+    {% if user.is_authenticated and user.role == 'admin' %}
+        · <span class="badge badge-pill">{{ blog.status|title }}</span>
+    {% endif %}
+</p>
+
+                    <p class="card-text">{{ blog.content|truncatechars:180 }}</p>
+                    <a href="{% url 'blogs:blog_detail' blog.pk %}" class="card-link">
+                        Read more →
+                    </a>
+                </div>
+            </article>
+        {% empty %}
+            <p class="muted">No blogs found.</p>
+        {% endfor %}
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
+                ‹ Previous
+            </a>
+        {% endif %}
+
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
+                Next ›
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Login · Central Platform{% endblock %}
+
+{% block content %}
+<section class="page page-narrow">
+    <div class="card card-form">
+        <div class="card-body">
+            <h1 class="card-title">Welcome back</h1>
+            <p class="muted">Sign in to access your dashboard and manage blogs.</p>
+
+            <form method="post" class="form-styled">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </div>
+            </form>
+
+            <p class="muted small">
+                Don't have an account?
+                <a href="{% url 'accounts:register' %}">Create one</a>.
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}

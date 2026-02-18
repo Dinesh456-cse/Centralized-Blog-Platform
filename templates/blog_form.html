@@ -1,0 +1,1696 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ form_title|default:"Create New Blog" }}{% endblock %}
+
+{% block content %}
+
+
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   🎨 MAIN LAYOUT
+   ═══════════════════════════════════════════════════════════════ */
+.blog-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   📊 ROLE-BASED STATUS BAR
+   ═══════════════════════════════════════════════════════════════ */
+.status-bar {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.status-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.status-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-role-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.role-admin {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+}
+
+.role-staff {
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+}
+
+.role-user {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+}
+
+.user-role-icon {
+    font-size: 1.2rem;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.user-name {
+    color: #e2e8f0;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.user-email {
+    color: #94a3b8;
+    font-size: 0.8rem;
+}
+
+/* Blog Status Badge */
+.blog-status-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.status-draft {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.status-pending {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.status-published {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.status-rejected {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-new {
+    background: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+/* Workflow Info */
+.workflow-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    padding: 8px 14px;
+    background: rgba(30, 41, 59, 0.6);
+    border-radius: 8px;
+}
+
+.workflow-arrow {
+    color: #6366f1;
+}
+
+/* Permissions Badge */
+.permissions-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(30, 41, 59, 0.6);
+    border-radius: 8px;
+    color: #94a3b8;
+    font-size: 0.8rem;
+}
+
+.permissions-badge.can-publish {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   📸 IMAGE UPLOAD SECTION
+   ═══════════════════════════════════════════════════════════════ */
+.image-upload-section {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 20px;
+    padding: 24px;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    margin-top: 20px;
+}
+
+.image-section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+}
+
+.image-section-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+.image-section-title {
+    color: #e2e8f0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.image-section-subtitle {
+    color: #94a3b8;
+    font-size: 0.875rem;
+    margin: 4px 0 0 0;
+}
+
+/* Upload Methods Container */
+.upload-methods {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+/* Manual Upload Box */
+.upload-box {
+    background: rgba(30, 41, 59, 0.6);
+    border: 2px dashed rgba(99, 102, 241, 0.3);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-box:hover {
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.2);
+}
+
+.upload-box.drag-over {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    border-style: solid;
+}
+
+.upload-box-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 28px;
+}
+
+.upload-box-title {
+    color: #e2e8f0;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 8px;
+}
+
+.upload-box-text {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+}
+
+.upload-box-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+}
+
+.upload-box:hover .upload-box-btn {
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+.upload-box input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* AI Generate Box */
+.ai-generate-box {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+    border: 2px solid rgba(16, 185, 129, 0.3);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.ai-generate-box:hover {
+    border-color: #10b981;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
+}
+
+.ai-generate-box .upload-box-icon {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
+}
+
+.ai-generate-box .upload-box-btn {
+    background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🖼️ IMAGE PREVIEW GALLERY
+   ═══════════════════════════════════════════════════════════════ */
+.image-gallery-section {
+    margin-top: 24px;
+}
+
+.gallery-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.gallery-title {
+    color: #e2e8f0;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.gallery-count {
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.clear-all-btn {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.clear-all-btn:hover {
+    background: rgba(239, 68, 68, 0.3);
+    border-color: #ef4444;
+}
+
+/* Image Grid */
+.image-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px;
+}
+
+.gallery-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(30, 41, 59, 0.6);
+    border: 2px solid rgba(99, 102, 241, 0.2);
+    transition: all 0.3s ease;
+    aspect-ratio: 4/3;
+}
+
+.gallery-item:hover {
+    border-color: #6366f1;
+    transform: scale(1.02);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.gallery-item-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 12px;
+}
+
+.gallery-item:hover .gallery-item-overlay {
+    opacity: 1;
+}
+
+.gallery-item-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+}
+
+.badge-manual {
+    background: rgba(99, 102, 241, 0.9);
+    color: white;
+}
+
+.badge-ai {
+    background: linear-gradient(135deg, #10b981, #06b6d4);
+    color: white;
+}
+
+.gallery-item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.gallery-item-btn {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.btn-set-cover {
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    color: white;
+}
+
+.btn-set-cover:hover {
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+.btn-remove {
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+}
+
+.btn-remove:hover {
+    background: #ef4444;
+}
+
+/* Cover Image Indicator */
+.gallery-item.is-cover {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+}
+
+.cover-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Empty State */
+.empty-gallery {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    color: #64748b;
+}
+
+.empty-gallery-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.empty-gallery-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🤖 AI SIDEBAR
+   ═══════════════════════════════════════════════════════════════ */
+.ai-sidebar {
+    position: sticky;
+    top: 20px;
+    height: calc(100vh - 60px);
+    max-height: 90vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.ai-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+.ai-sidebar::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.3);
+    border-radius: 10px;
+}
+.ai-sidebar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #6366f1, #a855f7);
+    border-radius: 10px;
+}
+
+.ai-assistant {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.ai-header {
+    background: linear-gradient(-45deg, #6366f1, #8b5cf6, #a855f7, #6366f1);
+    background-size: 400% 400%;
+    animation: gradient-shift 8s ease infinite;
+    color: white;
+    padding: 28px 24px;
+    text-align: center;
+}
+
+@keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.ai-avatar {
+    width: 64px;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 32px;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+.ai-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+.ai-header p {
+    margin: 8px 0 0 0;
+    opacity: 0.9;
+    font-size: 0.9rem;
+}
+
+.ai-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin-top: 12px;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background: #4ade80;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+    50% { box-shadow: 0 0 0 8px rgba(74, 222, 128, 0); }
+}
+
+.ai-body {
+    padding: 24px;
+}
+
+.ai-section {
+    margin-bottom: 20px;
+    padding: 20px;
+    background: rgba(30, 41, 59, 0.6);
+    border-radius: 16px;
+    border: 1px solid rgba(99, 102, 241, 0.15);
+}
+
+.ai-section-title {
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #e2e8f0;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.ai-input {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 12px;
+    color: #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.ai-input::placeholder { color: #64748b; }
+
+.ai-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.ai-select {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 12px;
+    color: #e2e8f0;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px;
+}
+
+.ai-select option {
+    background: #1e293b;
+    color: #e2e8f0;
+}
+
+.btn-ai {
+    width: 100%;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.btn-primary-ai {
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    color: white;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.btn-primary-ai:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.btn-secondary-ai {
+    background: rgba(30, 41, 59, 0.8);
+    color: #c7d2fe;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.btn-secondary-ai:hover {
+    background: rgba(99, 102, 241, 0.2);
+}
+
+.btn-success-ai {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.ai-status {
+    padding: 12px;
+    border-radius: 8px;
+    margin: 12px 0;
+    display: none;
+    font-size: 14px;
+    align-items: center;
+    gap: 10px;
+}
+
+.ai-status.loading {
+    background: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc;
+    display: flex;
+}
+
+.ai-status.error {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    display: block;
+}
+
+.ai-status.success {
+    background: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+    display: block;
+}
+
+.ai-output-box {
+    background: rgba(15, 23, 42, 0.9);
+    color: #a5f3fc;
+    padding: 16px;
+    border-radius: 10px;
+    margin-top: 12px;
+    min-height: 120px;
+    max-height: 300px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    display: none;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.suggestions-container {
+    margin-top: 12px;
+    display: none;
+}
+
+.suggestions-container.show { display: block; }
+
+.suggestion-item {
+    padding: 12px 14px;
+    margin: 6px 0;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    color: #cbd5e1;
+}
+
+.suggestion-item:hover {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: rgba(99, 102, 241, 0.4);
+    transform: translateX(4px);
+}
+
+/* AI Image Preview */
+#img-preview-area {
+    margin-top: 16px;
+    display: none;
+}
+
+#img-preview-area.show { display: block; }
+
+.preview-container {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid rgba(99, 102, 241, 0.3);
+    margin-bottom: 12px;
+}
+
+#generated-img {
+    width: 100%;
+    display: block;
+}
+
+.preview-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.form-actions .spacer {
+    flex: 1;
+}
+
+/* Responsive */
+@media(max-width: 992px) {
+    .blog-grid { grid-template-columns: 1fr; }
+    .ai-sidebar { 
+        order: -1; 
+        position: static; 
+        height: auto; 
+        max-height: none; 
+    }
+    .upload-methods { grid-template-columns: 1fr; }
+    .status-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .status-bar-right {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+}
+
+@media(max-width: 576px) {
+    .image-gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+
+<div class="page">
+    
+    <!-- ═══════════════════════════════════════════════════════════════
+         📊 ROLE-BASED STATUS BAR
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="status-bar">
+        <div class="status-bar-left">
+            <!-- User Role Badge -->
+            {% if request.user.is_superuser %}
+            <div class="user-role-badge role-admin">
+                <span class="user-role-icon">👑</span>
+                <div class="user-info">
+                    <span class="user-name">{{ request.user.username }}</span>
+                    <span class="user-email">Super Admin</span>
+                </div>
+            </div>
+            {% elif request.user.is_staff %}
+            <div class="user-role-badge role-staff">
+                <span class="user-role-icon">⚡</span>
+                <div class="user-info">
+                    <span class="user-name">{{ request.user.username }}</span>
+                    <span class="user-email">Staff / Moderator</span>
+                </div>
+            </div>
+            {% else %}
+            <div class="user-role-badge role-user">
+                <span class="user-role-icon">👤</span>
+                <div class="user-info">
+                    <span class="user-name">{{ request.user.username }}</span>
+                    <span class="user-email">Author</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Blog Status Badge -->
+            {% if blog %}
+                {% if blog.status == 'draft' %}
+                <div class="blog-status-badge status-draft">
+                    <span>📝</span> Draft
+                </div>
+                {% elif blog.status == 'pending' %}
+                <div class="blog-status-badge status-pending">
+                    <span>⏳</span> Pending Review
+                </div>
+                {% elif blog.status == 'published' %}
+                <div class="blog-status-badge status-published">
+                    <span>✅</span> Published
+                </div>
+                {% elif blog.status == 'rejected' %}
+                <div class="blog-status-badge status-rejected">
+                    <span>❌</span> Rejected
+                </div>
+                {% endif %}
+            {% else %}
+            <div class="blog-status-badge status-new">
+                <span>✨</span> New Blog
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="status-bar-right">
+            <!-- Workflow Info -->
+            {% if request.user.is_staff %}
+            <div class="permissions-badge can-publish">
+                <span>🔓</span> Can Publish / Reject
+            </div>
+            {% else %}
+            <div class="workflow-info">
+                <span>📋</span>
+                Draft <span class="workflow-arrow">→</span> 
+                Pending <span class="workflow-arrow">→</span> 
+                Published
+            </div>
+            {% endif %}
+
+            <!-- Last Updated -->
+            {% if blog.updated_at %}
+            <div class="workflow-info">
+                <span>🕐</span> Updated: {{ blog.updated_at|date:"M d, Y H:i" }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="blog-grid">
+
+        <!-- LEFT COLUMN: MAIN BLOG EDITOR -->
+        <div class="blog-editor-column">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="card-title">{{ form_title|default:"Create New Blog" }}</h1>
+
+                    <!-- Display Form Errors -->
+                    {% if form.errors %}
+                    <div class="alert alert-danger" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                        <strong style="color: #f87171;">⚠️ Please fix the following errors:</strong>
+                        <ul style="margin: 10px 0 0 20px; color: #fca5a5;">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" class="form-styled" id="main-blog-form">
+                        {% csrf_token %}
+                        
+                        <!-- ═══════════════════════════════════════════════════════════════
+                             🔧 STATUS FIELD - CRITICAL FIX
+                             ═══════════════════════════════════════════════════════════════ -->
+                        {% if request.user.is_staff %}
+                            <!-- Admin sees the dropdown - rendered later in the form -->
+                        {% else %}
+                            <!-- 🔴 IMPORTANT: Hidden status field for regular users -->
+                            <!-- This prevents "status is required" error -->
+                            <input type="hidden" name="status" value="draft">
+                        {% endif %}
+                        
+                        <!-- Title -->
+                        <div class="form-group">
+                            <label for="id_title" style="display: block; margin-bottom: 8px; font-weight: 600; color: #e2e8f0;">
+                                📝 Title <span style="color: #ef4444;">*</span>
+                            </label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                            <small style="color: #f87171;">{{ form.title.errors.0 }}</small>
+                            {% endif %}
+                        </div>
+
+                        <!-- Content -->
+                        <div class="form-group">
+                            <label for="id_content" style="display: block; margin-bottom: 8px; font-weight: 600; color: #e2e8f0;">
+                                ✍️ Content <span style="color: #ef4444;">*</span>
+                            </label>
+                            {{ form.content }}
+                            {% if form.content.errors %}
+                            <small style="color: #f87171;">{{ form.content.errors.0 }}</small>
+                            {% endif %}
+                        </div>
+
+                        <!-- Category -->
+                        <div class="form-group">
+                            <label for="id_category" style="display: block; margin-bottom: 8px; font-weight: 600; color: #e2e8f0;">
+                                🏷️ Category <span style="color: #ef4444;">*</span>
+                            </label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                            <small style="color: #f87171;">{{ form.category.errors.0 }}</small>
+                            {% endif %}
+                        </div>
+
+                        <!-- ═══════════════════════════════════════════════════════════════
+                             📸 IMAGE UPLOAD SECTION
+                             ═══════════════════════════════════════════════════════════════ -->
+                        <div class="image-upload-section">
+                            <div class="image-section-header">
+                                <div class="image-section-icon">📸</div>
+                                <div>
+                                    <h3 class="image-section-title">Blog Images</h3>
+                                    <p class="image-section-subtitle">Upload your own or generate with AI</p>
+                                </div>
+                            </div>
+
+                            <!-- Upload Methods -->
+                            <div class="upload-methods">
+                                <!-- Manual Upload Box -->
+                                <div class="upload-box" id="manual-upload-box">
+                                    <div class="upload-box-icon">📤</div>
+                                    <div class="upload-box-title">Upload Image</div>
+                                    <div class="upload-box-text">Drag & drop or click to browse</div>
+                                    <span class="upload-box-btn">Choose File</span>
+                                    <input type="file" id="image-upload-input" accept="image/*" multiple>
+                                </div>
+
+                                <!-- AI Generate Box -->
+                                <div class="ai-generate-box" onclick="scrollToAiImageSection()">
+                                    <div class="upload-box-icon">🤖</div>
+                                    <div class="upload-box-title">AI Generate</div>
+                                    <div class="upload-box-text">Create stunning images with AI</div>
+                                    <span class="upload-box-btn">Generate with AI →</span>
+                                </div>
+                            </div>
+
+                            <!-- Image Gallery -->
+                            <div class="image-gallery-section">
+                                <div class="gallery-header">
+                                    <div class="gallery-title">
+                                        🖼️ Your Images
+                                        <span class="gallery-count" id="image-count">0</span>
+                                    </div>
+                                    <button type="button" class="clear-all-btn" id="clear-all-btn" onclick="clearAllImages()" style="display: none;">
+                                        🗑️ Clear All
+                                    </button>
+                                </div>
+
+                                <div class="image-gallery-grid" id="image-gallery">
+                                    <!-- Empty State -->
+                                    <div class="empty-gallery" id="empty-gallery">
+                                        <div class="empty-gallery-icon">🖼️</div>
+                                        <div class="empty-gallery-text">No images added yet.<br>Upload or generate images above.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ═══════════════════════════════════════════════════════════════
+                                 🔴 FIXED: Hidden field for images - only all_images is submitted
+                                 The view will process this JSON and extract/save images
+                                 ═══════════════════════════════════════════════════════════════ -->
+                            <input type="hidden" name="all_images" id="all_images_json" value="{{ existing_images_json|default:'[]' }}">
+                        </div>
+
+                        <!-- ═══════════════════════════════════════════════════════════════
+                             📊 STATUS SELECTION (ADMIN ONLY)
+                             ═══════════════════════════════════════════════════════════════ -->
+                        {% if request.user.is_staff %}
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label for="id_status" style="display: block; margin-bottom: 8px; font-weight: 600; color: #e2e8f0;">
+                                📊 Blog Status (Admin Control)
+                            </label>
+                            {{ form.status }}
+                            <small style="color: #94a3b8; display: block; margin-top: 6px;">
+                                As an admin, you can directly set the blog status.
+                            </small>
+                        </div>
+                        {% endif %}
+
+                        <!-- ═══════════════════════════════════════════════════════════════
+                             🎯 ROLE-BASED ACTION BUTTONS
+                             ═══════════════════════════════════════════════════════════════ -->
+                        <div class="form-actions" style="margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap;">
+                            <a href="{% url 'blogs:blog_list' %}" class="btn btn-ghost btn-sm">← Cancel</a>
+                            
+                            <div style="flex: 1;"></div>
+                            
+                            {% if request.user.is_staff %}
+                                <!-- ═══ ADMIN BUTTONS ═══ -->
+                                <button type="submit" name="action" value="draft" class="btn btn-secondary">
+                                    📝 Save as Draft
+                                </button>
+                                {% if blog and blog.status == 'pending' %}
+                                <button type="submit" name="action" value="reject" class="btn btn-danger">
+                                    ❌ Reject
+                                </button>
+                                {% endif %}
+                                <button type="submit" name="action" value="publish" class="btn btn-success">
+                                    ✅ Publish
+                                </button>
+                            {% else %}
+                                <!-- ═══ NORMAL USER BUTTONS ═══ -->
+                                <button type="submit" name="action" value="draft" class="btn btn-secondary">
+                                    📝 Save as Draft
+                                </button>
+                                <button type="submit" name="action" value="submit" class="btn btn-primary">
+                                    📤 Submit for Review
+                                </button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: AI ASSISTANT -->
+        <div class="ai-sidebar">
+            <div class="ai-assistant">
+                <div class="ai-header">
+                    <div class="ai-avatar">🤖</div>
+                    <h3>AI Writing Assistant</h3>
+                    <p>Powered by Advanced AI</p>
+                    <div class="ai-status-badge">
+                        <span class="status-dot"></span>
+                        <span>Online</span>
+                    </div>
+                </div>
+
+                <div class="ai-body">
+                    <!-- Blog Generator -->
+                    <div class="ai-section">
+                        <div class="ai-section-title">
+                            <span class="section-icon">✨</span>
+                            Generate Blog
+                        </div>
+                        
+                        <input type="text" id="ai-topic" class="ai-input" placeholder="Enter your topic...">
+                        <select id="ai-tone" class="ai-select">
+                            <option value="Professional">💼 Professional</option>
+                            <option value="Casual">🎉 Casual</option>
+                            <option value="Technical">⚙️ Technical</option>
+                            <option value="Storytelling">📖 Storytelling</option>
+                        </select>
+
+                        <button type="button" class="btn-ai btn-primary-ai" id="btn-generate" onclick="generateBlog()">
+                            ✨ Generate Blog
+                        </button>
+                        <button type="button" class="btn-ai btn-secondary-ai" id="btn-titles" onclick="generateTitles()">
+                            💡 Suggest Titles
+                        </button>
+
+                        <div class="ai-status" id="ai-status"></div>
+                        <div id="title-suggestions" class="suggestions-container"></div>
+                        <div class="ai-output-box" id="ai-output"></div>
+                        <button type="button" class="btn-ai btn-success-ai" id="btn-insert" onclick="insertToEditor()" style="display: none; margin-top: 10px;">
+                            📝 Insert to Editor
+                        </button>
+                    </div>
+
+                    <!-- Category Suggester -->
+                    <div class="ai-section">
+                        <div class="ai-section-title">
+                            <span class="section-icon">🏷️</span>
+                            Smart Categories
+                        </div>
+                        <button type="button" class="btn-ai btn-secondary-ai" onclick="suggestCategories()">
+                            🤖 Suggest Categories
+                        </button>
+                        <div class="ai-status" id="category-status"></div>
+                        <div id="category-suggestions" class="suggestions-container"></div>
+                    </div>
+
+                    <!-- AI Image Generator -->
+                    <div class="ai-section" id="ai-image-section">
+                        <div class="ai-section-title">
+                            <span class="section-icon">🎨</span>
+                            AI Image Generator
+                        </div>
+                        
+                        <input type="text" id="img-prompt" class="ai-input" placeholder="Describe your image...">
+                        <select id="img-style" class="ai-select">
+                            <option value="photorealistic">📷 Photorealistic</option>
+                            <option value="digital art">🎨 Digital Art</option>
+                            <option value="illustration">✏️ Illustration</option>
+                            <option value="cinematic">🎬 Cinematic</option>
+                            <option value="minimalist">⬜ Minimalist</option>
+                        </select>
+
+                        <button type="button" class="btn-ai btn-primary-ai" id="btn-gen-img" onclick="generateImage()">
+                            🎨 Generate Image
+                        </button>
+
+                        <div id="img-preview-area">
+                            <div class="preview-container">
+                                <img id="generated-img" src="" alt="AI Generated" referrerpolicy="no-referrer">
+                                <span class="preview-badge">✨ AI</span>
+                            </div>
+                            <button type="button" class="btn-ai btn-success-ai" onclick="addAiImageToGallery()">
+                                ✅ Add to Gallery
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const CSRF_TOKEN = '{{ csrf_token }}';
+
+// ═══════════════════════════════════════════════════════════════
+// 📸 IMAGE GALLERY MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+
+let blogImages = [];
+let coverImageIndex = -1;
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Load existing images if editing
+    const existingImagesJson = document.getElementById('all_images_json').value;
+    try {
+        const parsed = JSON.parse(existingImagesJson);
+        if (parsed && parsed.length > 0) {
+            blogImages = parsed;
+            coverImageIndex = blogImages.findIndex(img => img.isCover);
+            if (coverImageIndex === -1 && blogImages.length > 0) {
+                coverImageIndex = 0;
+                blogImages[0].isCover = true;
+            }
+            renderGallery();
+        }
+    } catch (e) {
+        console.log('No existing images to load');
+    }
+
+    // Setup drag & drop
+    const uploadBox = document.getElementById('manual-upload-box');
+    const fileInput = document.getElementById('image-upload-input');
+    
+    if (uploadBox && fileInput) {
+        uploadBox.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadBox.classList.add('drag-over');
+        });
+        
+        uploadBox.addEventListener('dragleave', () => {
+            uploadBox.classList.remove('drag-over');
+        });
+        
+        uploadBox.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadBox.classList.remove('drag-over');
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+    }
+});
+
+// Handle uploaded files
+function handleFiles(files) {
+    Array.from(files).forEach(file => {
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                addImageToGallery(e.target.result, 'manual', file.name);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+// Add image to gallery
+function addImageToGallery(src, type, name = 'Image') {
+    const index = blogImages.length;
+    blogImages.push({
+        src: src,
+        type: type,
+        name: name,
+        isCover: false
+    });
+    
+    if (index === 0) {
+        setCoverImage(0);
+    }
+    
+    renderGallery();
+}
+
+// Render gallery
+function renderGallery() {
+    const gallery = document.getElementById('image-gallery');
+    const countBadge = document.getElementById('image-count');
+    const clearBtn = document.getElementById('clear-all-btn');
+    
+    if (!gallery) return;
+    
+    countBadge.textContent = blogImages.length;
+    
+    if (blogImages.length === 0) {
+        gallery.innerHTML = `
+            <div class="empty-gallery">
+                <div class="empty-gallery-icon">🖼️</div>
+                <div class="empty-gallery-text">No images added yet.<br>Upload or generate images above.</div>
+            </div>
+        `;
+        clearBtn.style.display = 'none';
+        updateHiddenFields();
+        return;
+    }
+    
+    clearBtn.style.display = 'block';
+    
+    let html = '';
+    blogImages.forEach((img, index) => {
+        const isCover = index === coverImageIndex;
+        html += `
+            <div class="gallery-item ${isCover ? 'is-cover' : ''}" data-index="${index}">
+                <img src="${img.src}" alt="${img.name}" onerror="this.src='https://via.placeholder.com/300x200?text=Image'">
+                <span class="gallery-item-badge ${img.type === 'ai' ? 'badge-ai' : 'badge-manual'}">
+                    ${img.type === 'ai' ? '✨ AI' : '📤 Upload'}
+                </span>
+                ${isCover ? '<span class="cover-badge">⭐ Cover</span>' : ''}
+                <div class="gallery-item-overlay">
+                    <div class="gallery-item-actions">
+                        ${!isCover ? `<button type="button" class="gallery-item-btn btn-set-cover" onclick="setCoverImage(${index})">⭐ Set Cover</button>` : ''}
+                        <button type="button" class="gallery-item-btn btn-remove" onclick="removeImage(${index})">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    gallery.innerHTML = html;
+    updateHiddenFields();
+}
+
+// Set cover image
+function setCoverImage(index) {
+    coverImageIndex = index;
+    blogImages.forEach((img, i) => {
+        img.isCover = (i === index);
+    });
+    renderGallery();
+}
+
+// Remove image
+function removeImage(index) {
+    blogImages.splice(index, 1);
+    
+    if (coverImageIndex === index) {
+        coverImageIndex = blogImages.length > 0 ? 0 : -1;
+        if (coverImageIndex >= 0) {
+            blogImages[0].isCover = true;
+        }
+    } else if (coverImageIndex > index) {
+        coverImageIndex--;
+    }
+    
+    renderGallery();
+}
+
+// Clear all images
+function clearAllImages() {
+    if (confirm('Remove all images?')) {
+        blogImages = [];
+        coverImageIndex = -1;
+        renderGallery();
+    }
+}
+
+// Update hidden fields - SIMPLIFIED: only update all_images JSON
+function updateHiddenFields() {
+    const allImages = document.getElementById('all_images_json');
+    allImages.value = JSON.stringify(blogImages);
+    console.log('[DEBUG] Updated all_images:', blogImages.length, 'images');
+}
+
+// Add AI image to gallery
+function addAiImageToGallery() {
+    const imgSrc = document.getElementById('generated-img').src;
+    if (imgSrc && imgSrc !== '' && !imgSrc.endsWith('/')) {
+        addImageToGallery(imgSrc, 'ai', 'AI Generated Image');
+        
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '✅ Added!';
+        setTimeout(() => btn.innerHTML = originalText, 2000);
+    } else {
+        alert('Please generate an image first!');
+    }
+}
+
+// Scroll to AI image section
+function scrollToAiImageSection() {
+    document.getElementById('ai-image-section').scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+    });
+    setTimeout(() => document.getElementById('img-prompt').focus(), 500);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🤖 AI FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+function generateBlog() {
+    const topic = document.getElementById('ai-topic').value.trim();
+    const tone = document.getElementById('ai-tone').value;
+    const btn = document.getElementById('btn-generate');
+    const status = document.getElementById('ai-status');
+    const output = document.getElementById('ai-output');
+    const insertBtn = document.getElementById('btn-insert');
+
+    if (!topic) {
+        status.className = 'ai-status error';
+        status.innerHTML = '⚠️ Please enter a topic!';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Generating...';
+    status.className = 'ai-status loading';
+    status.innerHTML = '✨ AI is writing your blog...';
+    output.style.display = 'none';
+    insertBtn.style.display = 'none';
+
+    const formData = new FormData();
+    formData.append('topic', topic);
+    formData.append('tone', tone);
+
+    fetch("{% url 'blogs:ai_generate_blog' %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF_TOKEN},
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            output.innerText = data.content;
+            output.style.display = 'block';
+            insertBtn.style.display = 'block';
+            status.className = 'ai-status success';
+            status.innerHTML = '✅ Blog generated successfully!';
+        } else {
+            status.className = 'ai-status error';
+            status.innerHTML = '❌ ' + data.error;
+        }
+        btn.disabled = false;
+        btn.innerHTML = '✨ Generate Blog';
+    })
+    .catch(err => {
+        status.className = 'ai-status error';
+        status.innerHTML = '❌ Connection error';
+        btn.disabled = false;
+        btn.innerHTML = '✨ Generate Blog';
+    });
+}
+
+function insertToEditor() {
+    const content = document.getElementById('ai-output').innerText;
+    const field = document.querySelector('textarea[name="content"]');
+    if (field) {
+        if (field.value.trim() && !confirm('Replace existing content?')) return;
+        field.value = content;
+        
+        const btn = document.getElementById('btn-insert');
+        btn.innerHTML = '✅ Inserted!';
+        setTimeout(() => btn.innerHTML = '📝 Insert to Editor', 2000);
+    }
+}
+
+function generateTitles() {
+    const topic = document.getElementById('ai-topic').value.trim();
+    const btn = document.getElementById('btn-titles');
+    
+    if (!topic) { 
+        alert('Enter a topic first!'); 
+        return; 
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Thinking...';
+
+    const formData = new FormData();
+    formData.append('topic', topic);
+
+    fetch("{% url 'blogs:ai_generate_titles' %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF_TOKEN},
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        const container = document.getElementById('title-suggestions');
+        if (data.success && data.titles && data.titles.length > 0) {
+            let html = '<div style="color: #94a3b8; font-size: 12px; margin-bottom: 8px;">💡 Click to use:</div>';
+            data.titles.forEach(title => {
+                const clean = title.replace(/^\d+[\.\)]\s*/, '').replace(/"/g, '');
+                html += `<div class="suggestion-item" onclick="useTitle('${clean.replace(/'/g, "\\'")}')">${title}</div>`;
+            });
+            container.innerHTML = html;
+            container.classList.add('show');
+        }
+        btn.disabled = false;
+        btn.innerHTML = '💡 Suggest Titles';
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '💡 Suggest Titles';
+    });
+}
+
+function useTitle(title) {
+    const field = document.querySelector('input[name="title"]');
+    if (field) {
+        field.value = title;
+        field.style.borderColor = '#10b981';
+        setTimeout(() => field.style.borderColor = '', 2000);
+    }
+}
+
+function suggestCategories() {
+    const content = document.querySelector('textarea[name="content"]')?.value.trim() || '';
+    const status = document.getElementById('category-status');
+    
+    if (content.length < 50) {
+        status.className = 'ai-status error';
+        status.innerHTML = '⚠️ Write more content first!';
+        return;
+    }
+
+    status.className = 'ai-status loading';
+    status.innerHTML = '🔍 Analyzing content...';
+
+    const formData = new FormData();
+    formData.append('content', content);
+
+    fetch("{% url 'blogs:ai_suggest_categories' %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF_TOKEN},
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        const container = document.getElementById('category-suggestions');
+        if (data.success && data.categories && data.categories.length > 0) {
+            let html = '<div style="color: #94a3b8; font-size: 12px; margin-bottom: 8px;">🏷️ Recommended:</div>';
+            data.categories.forEach(cat => {
+                html += `<div class="suggestion-item" onclick="useCategory('${cat}')">${cat}</div>`;
+            });
+            container.innerHTML = html;
+            container.classList.add('show');
+            status.className = 'ai-status success';
+            status.innerHTML = '✅ Categories analyzed!';
+        } else {
+            status.className = 'ai-status error';
+            status.innerHTML = '❌ ' + (data.error || 'No categories found');
+        }
+    })
+    .catch(err => {
+        status.className = 'ai-status error';
+        status.innerHTML = '❌ Error analyzing content';
+    });
+}
+
+function useCategory(category) {
+    const select = document.querySelector('select[name="category"]');
+    if (select) {
+        for (let opt of select.options) {
+            if (opt.text === category || opt.value === category) {
+                select.value = opt.value;
+                select.style.borderColor = '#10b981';
+                setTimeout(() => select.style.borderColor = '', 2000);
+                return;
+            }
+        }
+    }
+}
+
+
+function generateImage() {
+    const promptInput = document.getElementById('img-prompt');
+    const styleSelect = document.getElementById('img-style');
+    const btn = document.getElementById('btn-gen-img');
+    const previewArea = document.getElementById('img-preview-area');
+    const previewImg = document.getElementById('generated-img');
+
+    const prompt = promptInput.value.trim();
+    const style = styleSelect.value;
+
+    if (!prompt) {
+        alert('Please describe the image you want!');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Generating...';
+    previewArea.classList.remove('show');
+
+    const formData = new FormData();
+    formData.append('prompt', prompt);
+    formData.append('style', style);
+
+    fetch("{% url 'blogs:ai_generate_image' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': CSRF_TOKEN
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('AI image response:', data);
+
+        if (!data.success) {
+            alert('Error: ' + (data.error || 'Unknown error'));
+            btn.disabled = false;
+            btn.innerHTML = '🎨 Generate Image';
+            return;
+        }
+
+        const url = data.image_url;
+        console.log('Trying to load image from:', url);
+
+        // Create a test image to see if the browser can load it
+        const testImg = new Image();
+        testImg.referrerPolicy = "no-referrer";
+
+        testImg.onload = function () {
+            console.log('✅ Test image loaded successfully');
+            // Now set the real preview image
+            previewImg.referrerPolicy = "no-referrer";
+            // Inside the onload callback:
+            previewImg.src = data.image_url;  // This is now /media/blog_images/xxx.png
+            previewArea.classList.add('show');
+            btn.disabled = false;
+            btn.innerHTML = '🎨 Generate Image';
+        };
+
+        testImg.onerror = function (e) {
+            console.error('❌ Browser failed to load image:', e);
+            alert(
+                'Image generated, but your browser would not display it.\n\n' +
+                'You can open it directly in a new tab:\n' + url
+            );
+            btn.disabled = false;
+            btn.innerHTML = '🎨 Generate Image';
+        };
+
+        testImg.src = url;
+    })
+    .catch(err => {
+        console.error('❌ Error calling AI image API:', err);
+        alert('Error generating image. Check console for details.');
+        btn.disabled = false;
+        btn.innerHTML = '🎨 Generate Image';
+    });
+}
+
+</script>
+                                                         
+{% endblock %}

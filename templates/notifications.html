@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<section class="page">
+    <div class="card">
+        <div class="card-body">
+            <h1 class="card-title">🔔 Notifications</h1>
+            
+            {% if unread_count > 0 %}
+            <p>You have <strong>{{ unread_count }}</strong> unread notifications.</p>
+            <a href="{% url 'blogs:mark_all_read' %}" class="btn btn-primary btn-sm">Mark All as Read</a>
+            {% endif %}
+            
+            <div style="margin-top: 20px;">
+                <a href="?filter=all" class="btn {% if filter_type == 'all' %}btn-primary{% else %}btn-ghost{% endif %} btn-sm">All</a>
+                <a href="?filter=unread" class="btn {% if filter_type == 'unread' %}btn-primary{% else %}btn-ghost{% endif %} btn-sm">Unread</a>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                {% for notification in notifications %}
+                <div style="padding: 15px; margin: 10px 0; background: {% if not notification.is_read %}rgba(99, 102, 241, 0.1){% else %}#f8f9fa{% endif %}; border-radius: 8px; border-left: 4px solid {% if not notification.is_read %}#6366f1{% else %}#e5e7eb{% endif %};">
+                    <a href="{% url 'blogs:mark_notification_read' notification.pk %}" style="text-decoration: none; color: inherit;">
+                        <strong>{{ notification.title }}</strong>
+                        <p style="margin: 8px 0; color: #666;">{{ notification.message }}</p>
+                        <small style="color: #999;">{{ notification.created_at|timesince }} ago</small>
+                    </a>
+                </div>
+                {% empty %}
+                <p style="text-align: center; color: #666; padding: 40px;">No notifications.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ blog.title }}{% endblock %}
+
+{% block content %}
+<style>
+.blog-detail-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.blog-cover-image {
+    width: 100%;
+    max-height: 500px;
+    object-fit: cover;
+    border-radius: 16px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+.blog-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #e2e8f0;
+    margin-bottom: 16px;
+    line-height: 1.2;
+}
+
+.blog-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.blog-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+.blog-category-badge {
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.blog-status-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-published { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+.status-pending { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+.status-draft { background: rgba(148, 163, 184, 0.2); color: #94a3b8; }
+.status-rejected { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+.blog-content {
+    color: #cbd5e1;
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+.blog-content p {
+    margin-bottom: 1.5em;
+}
+
+.blog-images-gallery {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.gallery-title {
+    color: #e2e8f0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.gallery-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 4/3;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.gallery-item:hover {
+    transform: scale(1.02);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.gallery-item-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: rgba(0,0,0,0.7);
+    color: white;
+}
+
+.blog-actions {
+    margin-top: 40px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+</style>
+
+<div class="blog-detail-container">
+    <!-- Cover Image (EXPAND enabled) -->
+    {% if blog.get_cover_image_url %}
+    <img
+        src="{{ blog.get_cover_image_url }}"
+        alt="{{ blog.cover_image_alt|default:blog.title }}"
+        class="blog-cover-image js-expandable-image"
+        data-fullsrc="{{ blog.get_cover_image_url }}"
+        data-alt="{{ blog.cover_image_alt|default:blog.title|escape }}"
+        style="cursor: zoom-in;"
+        onerror="this.style.display='none'">
+    {% elif blog.image %}
+    <img
+        src="{{ blog.image.url }}"
+        alt="{{ blog.title }}"
+        class="blog-cover-image js-expandable-image"
+        data-fullsrc="{{ blog.image.url }}"
+        data-alt="{{ blog.title|escape }}"
+        style="cursor: zoom-in;">
+    {% endif %}
+
+    <!-- Title -->
+    <h1 class="blog-title">{{ blog.title }}</h1>
+
+    <!-- Meta Info -->
+    <div class="blog-meta">
+        <div class="blog-meta-item">
+            <span>👤</span>
+            <span>{{ blog.author.username }}</span>
+        </div>
+        <div class="blog-meta-item">
+            <span>📅</span>
+            <span>{{ blog.created_at|date:"M d, Y" }}</span>
+        </div>
+        <span class="blog-category-badge">{{ blog.category }}</span>
+        <span class="blog-status-badge status-{{ blog.status }}">
+            {% if blog.status == 'published' %}✅{% elif blog.status == 'pending' %}⏳{% elif blog.status == 'draft' %}📝{% else %}❌{% endif %}
+            {{ blog.get_status_display }}
+        </span>
+    </div>
+
+    <!-- Content -->
+    <div class="blog-content">
+        {{ blog.content|linebreaks }}
+    </div>
+
+    <!-- Images Gallery (EXPAND enabled) -->
+    {% if blog.images_list %}
+    <div class="blog-images-gallery">
+        <h3 class="gallery-title">
+            <span>📸</span> Blog Images
+        </h3>
+
+        <div class="gallery-grid">
+            {% for image in blog.images_list %}
+            <div
+                class="gallery-item js-expandable-item"
+                data-fullsrc="{{ image.src }}"
+                data-alt="{{ image.name|default:'Blog Image'|escape }}"
+                title="Click to expand"
+            >
+                <img
+                    src="{{ image.src }}"
+                    alt="{{ image.name|default:'Blog Image' }}"
+                    style="cursor: zoom-in;"
+                    onerror="this.parentElement.style.display='none'">
+
+                <span class="gallery-item-badge">
+                    {% if image.type == 'ai' %}✨ AI{% else %}📤 Upload{% endif %}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="blog-actions">
+        <a href="{% url 'blogs:blog_list' %}" class="btn btn-secondary">
+            ← Back to Blogs
+        </a>
+        {% if request.user == blog.author or request.user.is_staff %}
+        <a href="{% url 'blogs:blog_update' blog.pk %}" class="btn btn-primary">
+            ✏️ Edit Blog
+        </a>
+        {% endif %}
+        {% if request.user.is_staff and blog.status == 'pending' %}
+        <a href="{% url 'blogs:blog_update' blog.pk %}" class="btn btn-success">
+            👀 Review
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- EXPAND MODAL (no CSS changes to your existing classes) -->
+<div
+    id="img-expand-modal"
+    style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.85); padding:20px;"
+    role="dialog"
+    aria-modal="true"
+    aria-hidden="true"
+>
+    <div
+        style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center;"
+    >
+        <button
+            type="button"
+            id="img-expand-close"
+            aria-label="Close"
+            style="position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.6); color:#fff; border:1px solid rgba(255,255,255,0.2); border-radius:10px; padding:10px 12px; cursor:pointer; font-weight:700;"
+        >
+            ✕
+        </button>
+
+        <img
+            id="img-expand-target"
+            src=""
+            alt=""
+            style="max-width:95vw; max-height:90vh; object-fit:contain; border-radius:14px; box-shadow:0 10px 40px rgba(0,0,0,0.5);"
+        >
+    </div>
+</div>
+
+<script>
+(function () {
+    const modal = document.getElementById('img-expand-modal');
+    const modalImg = document.getElementById('img-expand-target');
+    const closeBtn = document.getElementById('img-expand-close');
+
+    function openModal(src, alt) {
+        if (!src) return;
+        modalImg.src = src;
+        modalImg.alt = alt || 'Expanded image';
+        modal.style.display = 'block';
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+        modalImg.src = '';
+        document.body.style.overflow = '';
+    }
+
+    // Cover image expand
+    document.querySelectorAll('.js-expandable-image').forEach(img => {
+        img.addEventListener('click', function () {
+            const src = this.getAttribute('data-fullsrc') || this.src;
+            const alt = this.getAttribute('data-alt') || this.alt;
+            openModal(src, alt);
+        });
+    });
+
+    // Gallery expand (click anywhere on the tile)
+    document.querySelectorAll('.js-expandable-item').forEach(item => {
+        item.addEventListener('click', function (e) {
+            // If user clicks on badge, still expand
+            const src = this.getAttribute('data-fullsrc');
+            const alt = this.getAttribute('data-alt');
+            openModal(src, alt);
+        });
+    });
+
+    // Close actions
+    closeBtn.addEventListener('click', closeModal);
+
+    // Click outside the image closes
+    modal.addEventListener('click', function (e) {
+        // only close if clicked on the dark overlay area (not the image itself)
+        if (e.target === modal) closeModal();
+    });
+
+    // ESC closes
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.style.display === 'block') {
+            closeModal();
+        }
+    });
+})();
+</script>
+{% endblock %}
